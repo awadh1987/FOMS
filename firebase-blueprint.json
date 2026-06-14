@@ -1,0 +1,124 @@
+{
+  "entities": {
+    "Company": {
+      "title": "Company",
+      "description": "Enterprise tenant profile info and settings",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "logo_url": { "type": "string" },
+        "primary_color": { "type": "string" },
+        "currency": { "type": "string" },
+        "widget_order": { "type": "string" },
+        "subscription_plan": { "type": "string", "enum": ["Trial", "Starter", "Business", "Enterprise"] },
+        "subscription_status": { "type": "string", "enum": ["Active", "Expired", "Pending", "Suspended"] },
+        "subscription_expiry": { "type": "string", "format": "date" },
+        "subscription_price_paid": { "type": "number" },
+        "subscription_billing_cycle": { "type": "string", "enum": ["monthly", "yearly"] }
+      },
+      "required": ["id", "name"]
+    },
+    "Client": {
+      "title": "Client",
+      "description": "Client registry data under a parent company tenant",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "company_id": { "type": "string" },
+        "name": { "type": "string" },
+        "company": { "type": "string" },
+        "phone": { "type": "string" }
+      },
+      "required": ["id", "company_id", "name"]
+    },
+    "Operation": {
+      "title": "Operation",
+      "description": "Active service operation tracked for ledger calculations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "company_id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "service": { "type": "string" },
+        "cost": { "type": "number" },
+        "revenue": { "type": "number" },
+        "profit": { "type": "number" },
+        "date": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["Pending", "In Progress", "Completed"] }
+      },
+      "required": ["id", "company_id", "client_id", "service", "cost", "revenue", "profit", "date"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Invoicing ledger mapped to services operations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "company_id": { "type": "string" },
+        "op_id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["Paid", "Unpaid"] },
+        "due_date": { "type": "string", "format": "date" },
+        "payment_date": { "type": "string", "format": "date" }
+      },
+      "required": ["id", "company_id", "op_id", "client_id", "amount", "status", "due_date"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "Operational expense transactions logged for P&L breakdown",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "company_id": { "type": "string" },
+        "category": { "type": "string" },
+        "amount": { "type": "number" },
+        "frequency": { "type": "string", "enum": ["weekly", "monthly", "yearly", "once"] },
+        "date": { "type": "string", "format": "date" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "company_id", "category", "amount", "frequency", "date"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Audit trail documenting events and backoffice transactions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "company_id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "user": { "type": "string" }
+      },
+      "required": ["id", "company_id", "timestamp", "action", "details", "user"]
+    }
+  },
+  "firestore": {
+    "/companies/{companyId}": {
+      "schema": "Company",
+      "description": "Main base company node"
+    },
+    "/companies/{companyId}/clients/{clientId}": {
+      "schema": "Client",
+      "description": "Sub-collection of tenant clients"
+    },
+    "/companies/{companyId}/operations/{operationId}": {
+      "schema": "Operation",
+      "description": "Sub-collection of tenant operations"
+    },
+    "/companies/{companyId}/invoices/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "Sub-collection of matching invoices"
+    },
+    "/companies/{companyId}/expenses/{expenseId}": {
+      "schema": "Expense",
+      "description": "Sub-collection of operational expenses"
+    },
+    "/companies/{companyId}/audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Sub-collection of tenant backoffice audit trails"
+    }
+  }
+}

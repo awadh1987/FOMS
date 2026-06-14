@@ -1,0 +1,8 @@
+{
+  "name": "Remix: نظام الإدارة المالية والعمليات ERP",
+  "description": "نظام إدارة مالية وعمليات احترافي (SaaS ERP) متعدد الشركات يدعم إدارة العملاء، الفواتير التلقائية، تتبع الأرباح والتنبيهات بالفواتير المتأخرة.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

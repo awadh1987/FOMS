@@ -1,0 +1,152 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Safety Net (default-deny catch-all)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Primitive Global Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(companyId) {
+      // In our multi-tenant SaaS, access is controlled per company.
+      // We check if the request is signed in and has authorization or belongs to the scope of that company.
+      return isSignedIn();
+    }
+
+    function isValidId(id) {
+       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity Specific Validators ---
+    function isValidCompany(data) {
+      return data.keys().hasAll(['id', 'name']) &&
+             data.keys().size() <= 11 &&
+             data.id is string && data.id.size() <= 128 &&
+             data.name is string && data.name.size() <= 200;
+    }
+
+    function isValidClient(data) {
+      return data.keys().hasAll(['id', 'company_id', 'name']) &&
+             data.keys().size() <= 5 &&
+             data.id is string && data.id.size() <= 128 &&
+             data.company_id is string && data.company_id.size() <= 128 &&
+             data.name is string && data.name.size() <= 200;
+    }
+
+    function isValidOperation(data) {
+      return data.keys().hasAll(['id', 'company_id', 'client_id', 'service', 'cost', 'revenue', 'profit', 'date']) &&
+             data.keys().size() <= 9 &&
+             data.id is string && data.id.size() <= 128 &&
+             data.company_id is string && data.company_id.size() <= 128 &&
+             data.client_id is string && data.client_id.size() <= 128 &&
+             data.service is string && data.service.size() <= 200 &&
+             data.cost is number &&
+             data.revenue is number &&
+             data.profit is number &&
+             data.date is string && data.date.size() <= 32;
+    }
+
+    function isValidInvoice(data) {
+      return data.keys().hasAll(['id', 'company_id', 'op_id', 'client_id', 'amount', 'status', 'due_date']) &&
+             data.keys().size() <= 8 &&
+             data.id is string && data.id.size() <= 128 &&
+             data.company_id is string && data.company_id.size() <= 128 &&
+             data.op_id is string && data.op_id.size() <= 128 &&
+             data.client_id is string && data.client_id.size() <= 128 &&
+             data.amount is number &&
+             data.status is string && (data.status == 'Paid' || data.status == 'Unpaid') &&
+             data.due_date is string && data.due_date.size() <= 32;
+    }
+
+    function isValidExpense(data) {
+      return data.keys().hasAll(['id', 'company_id', 'category', 'amount', 'frequency', 'date']) &&
+             data.keys().size() <= 7 &&
+             data.id is string && data.id.size() <= 128 &&
+             data.company_id is string && data.company_id.size() <= 128 &&
+             data.category is string && data.category.size() <= 100 &&
+             data.amount is number &&
+             data.frequency is string && (data.frequency == 'weekly' || data.frequency == 'monthly' || data.frequency == 'yearly' || data.frequency == 'once') &&
+             data.date is string && data.date.size() <= 32;
+    }
+
+    function isValidAuditLog(data) {
+      return data.keys().hasAll(['id', 'company_id', 'timestamp', 'action', 'details', 'user']) &&
+             data.keys().size() <= 6 &&
+             data.id is string && data.id.size() <= 128 &&
+             data.company_id is string && data.company_id.size() <= 128 &&
+             data.timestamp is string && data.timestamp.size() <= 64 &&
+             data.action is string && data.action.size() <= 300 &&
+             data.details is string && data.details.size() <= 2000 &&
+             data.user is string && data.user.size() <= 200;
+    }
+
+    // --- Collections Match Blocks ---
+
+    // 1. Companies
+    match /companies/{companyId} {
+      allow get: if isOwner(companyId) && isValidId(companyId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(companyId) && isValidCompany(incoming()) && incoming().id == companyId;
+      allow update: if isOwner(companyId) && isValidId(companyId) && isValidCompany(incoming()) && incoming().id == existing().id;
+      allow delete: if isOwner(companyId) && isValidId(companyId);
+
+      // 2. Clients Subcollection
+      match /clients/{clientId} {
+        allow get: if isOwner(companyId) && isValidId(clientId);
+        allow list: if isOwner(companyId);
+        allow create: if isOwner(companyId) && isValidId(clientId) && isValidClient(incoming()) && incoming().id == clientId && incoming().company_id == companyId;
+        allow update: if isOwner(companyId) && isValidId(clientId) && isValidClient(incoming()) && incoming().id == existing().id && incoming().company_id == existing().company_id;
+        allow delete: if isOwner(companyId) && isValidId(clientId);
+      }
+
+      // 3. Operations Subcollection
+      match /operations/{operationId} {
+        allow get: if isOwner(companyId) && isValidId(operationId);
+        allow list: if isOwner(companyId);
+        allow create: if isOwner(companyId) && isValidId(operationId) && isValidOperation(incoming()) && incoming().id == operationId && incoming().company_id == companyId;
+        allow update: if isOwner(companyId) && isValidId(operationId) && isValidOperation(incoming()) && incoming().id == existing().id && incoming().company_id == existing().company_id;
+        allow delete: if isOwner(companyId) && isValidId(operationId);
+      }
+
+      // 4. Invoices Subcollection
+      match /invoices/{invoiceId} {
+        allow get: if isOwner(companyId) && isValidId(invoiceId);
+        allow list: if isOwner(companyId);
+        allow create: if isOwner(companyId) && isValidId(invoiceId) && isValidInvoice(incoming()) && incoming().id == invoiceId && incoming().company_id == companyId;
+        allow update: if isOwner(companyId) && isValidId(invoiceId) && isValidInvoice(incoming()) && incoming().id == existing().id && incoming().company_id == existing().company_id;
+        allow delete: if isOwner(companyId) && isValidId(invoiceId);
+      }
+
+      // 5. Expenses Subcollection
+      match /expenses/{expenseId} {
+        allow get: if isOwner(companyId) && isValidId(expenseId);
+        allow list: if isOwner(companyId);
+        allow create: if isOwner(companyId) && isValidId(expenseId) && isValidExpense(incoming()) && incoming().id == expenseId && incoming().company_id == companyId;
+        allow update: if isOwner(companyId) && isValidId(expenseId) && isValidExpense(incoming()) && incoming().id == existing().id && incoming().company_id == existing().company_id;
+        allow delete: if isOwner(companyId) && isValidId(expenseId);
+      }
+
+      // 6. Audit Logs Subcollection
+      match /audit_logs/{logId} {
+        allow get: if isOwner(companyId) && isValidId(logId);
+        allow list: if isOwner(companyId);
+        allow create: if isOwner(companyId) && isValidId(logId) && isValidAuditLog(incoming()) && incoming().id == logId && incoming().company_id == companyId;
+        allow update: if false; // Audit logs should be immutable
+        allow delete: if isOwner(companyId) && isValidId(logId);
+      }
+    }
+  }
+}

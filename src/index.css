@@ -1,0 +1,231 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+:root {
+  --bg-app: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+}
+
+.dark {
+  --bg-app: #090d16;
+  --bg-card: #111827;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border-color: #1f2937;
+}
+
+@theme {
+  --font-sans: "Cairo", "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  --color-appbk: var(--bg-app);
+  --color-cardbk: var(--bg-card);
+  --color-txtmain: var(--text-main);
+  --color-txtmuted: var(--text-muted);
+  --color-borderline: var(--border-color);
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+@media print {
+  /* Hide all standard webpage elements including buttons, header, side rails, inputs, and customizer panels */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Reset page sizing and margins for standard A4 portrait sheet printing */
+  @page {
+    size: A4 portrait;
+    margin: 15mm 15mm 15mm 15mm;
+  }
+
+  /* Reset all ancestors to avoid clipping, max-height cutoffs, or hidden scrolls at print time */
+  html, body, #root, .fixed, .max-w-4xl, .bg-cardbk, .flex-grow, .flex-1, .relative {
+    position: static !important;
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    width: 100% !important;
+    display: block !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Render ONLY the premium printable A4 document area and its children */
+  #printable-invoice-area, #printable-invoice-area * {
+    visibility: visible !important;
+  }
+
+  /* Format #printable-invoice-area into a clean, minimalist letterhead layout */
+  #printable-invoice-area {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    font-size: 10pt !important;
+    line-height: 1.4 !important;
+    direction: rtl !important; /* Ensure proper right-to-left layout for bilingual Saudi VAT invoice */
+  }
+
+  /* Minimalist monochrome typography reset */
+  #printable-invoice-area h1,
+  #printable-invoice-area h2,
+  #printable-invoice-area h3,
+  #printable-invoice-area h4,
+  #printable-invoice-area p,
+  #printable-invoice-area span,
+  #printable-invoice-area div,
+  #printable-invoice-area table,
+  #printable-invoice-area td,
+  #printable-invoice-area th,
+  #printable-invoice-area strong {
+    color: #000000 !important;
+    text-shadow: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  /* Elegant primary separator line (replaces colored block layout) */
+  #printable-invoice-area > div:first-child {
+    border-bottom: 1.5px solid #000000 !important;
+    padding-bottom: 20px !important;
+    margin-bottom: 25px !important;
+  }
+
+  /* Client & Payment Info Box: Restyle from grey container to minimal clean thin outline */
+  #printable-invoice-area .bg-slate-50,
+  #printable-invoice-area .p-4.rounded-xl {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    border-radius: 4px !important;
+    padding: 15px !important;
+    margin-bottom: 25px !important;
+  }
+
+  #printable-invoice-area .grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 30px !important;
+  }
+
+  #printable-invoice-area .grid > div {
+    border-right: none !important;
+    border-left: none !important;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  /* Table styling override: Remove bold solid colors and replace with clean minimalist accounting borders */
+  #printable-invoice-area .border-slate-200,
+  #printable-invoice-area .rounded-xl {
+    border: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+  }
+
+  #printable-invoice-area table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-bottom: 25px !important;
+  }
+
+  #printable-invoice-area thead tr {
+    background-color: transparent !important;
+    background: transparent !important;
+    border-top: 1.5px solid #000000 !important;
+    border-bottom: 1.5px solid #000000 !important;
+  }
+
+  #printable-invoice-area thead th {
+    color: #000000 !important;
+    font-weight: bold !important;
+    padding: 8px 6px !important;
+    border: none !important;
+  }
+
+  #printable-invoice-area tbody td {
+    padding: 10px 6px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    color: #000000 !important;
+  }
+
+  /* Last row in invoice items has double lines or a thicker line */
+  #printable-invoice-area tbody tr:last-child td {
+    border-bottom: 1.5px solid #000000 !important;
+  }
+
+  /* Calculations Breakdown section alignment and styling */
+  #printable-invoice-area .grid-cols-1.md\:grid-cols-2 {
+    display: grid !important;
+    grid-template-columns: 1.2fr 1fr !important;
+    gap: 40px !important;
+    align-items: start !important;
+    margin-top: 20px !important;
+  }
+
+  #printable-invoice-area .border-r-2 {
+    border-right: none !important;
+    border-left: 1.5px solid #000000 !important; /* Left line separator at print */
+    padding-right: 0 !important;
+    padding-left: 20px !important;
+  }
+
+  /* Crisp monochrome QR code printing */
+  #printable-invoice-area .bg-slate-50.p-2\.5 {
+    background: #ffffff !important;
+    border: 1.5px solid #000000 !important;
+    border-radius: 4px !important;
+    padding: 8px !important;
+  }
+
+  /* Stamp Badge reset: Pure monochrome clean outline, perfect for laser print */
+  #printable-invoice-area .border-dashed {
+    border: 1.5px dashed #000000 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #000000 !important;
+    border-radius: 4px !important;
+  }
+
+  #printable-invoice-area .border-dashed + div {
+    color: #000000 !important;
+  }
+
+  /* Terms and optional comments box restyle for printing */
+  #printable-invoice-area .leading-relaxed.mb-6 {
+    background: #ffffff !important;
+    border: 1px dashed #000000 !important;
+    border-radius: 4px !important;
+    padding: 12px !important;
+    margin-top: 25px !important;
+  }
+
+  /* Hide customizer panels and control overlays */
+  #invoice-customizer-panel, 
+  #invoice-close-button,
+  .inline-block.border-slate-200 {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
